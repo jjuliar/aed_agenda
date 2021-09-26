@@ -12,6 +12,7 @@
 #define ult (sizeof(int))
 
 void inserirPessoa(void *pBuffer, void *pAddress){
+    system("clear");
     void *nodo = (void *)malloc(nome + idade + telefone + sizeof(void **) * 2);
     void *temp;
 
@@ -76,7 +77,8 @@ void inserirPessoa(void *pBuffer, void *pAddress){
 }
 
 void procurar(void *pBuffer, void *pAddress){
-    char *nomeBusca = pBuffer + nome;
+    system("clear");
+    char *nomeBusca = calloc(1, nome);
 
     printf("Insira nome da pessoa: ");
     scanf("%s", nomeBusca);
@@ -88,28 +90,41 @@ void procurar(void *pBuffer, void *pAddress){
             printf("\n\n%s, ", (char*)pBuffer);
             printf("%d anos, ", *(int*)(pBuffer + nome));
             printf("contato: %d \n\n",  *(long int*)(pBuffer + nome + idade));
-
+            free(nomeBusca);
+            continuar();
             return;
         } 
 
         pBuffer = *(void **)(pBuffer + prox);
     }
+    
+    printf("\n\nPessoa não encontrada.\n");
+    continuar();    
+    free(nomeBusca);
 }
 
 void listarTodos(void *pBuffer, void *pAddress){
+    system("clear");
     pBuffer = *(void **)(pAddress + pri);
 
     while(pBuffer != NULL) {
-        printf("\n\n%s, ", (char*)pBuffer);
+        printf("\n%s, ", (char*)pBuffer);
         printf("%d anos, ", *(int*)(pBuffer + nome));
-        printf("contato: %d \n\n",  *(long int*)(pBuffer + nome + idade));
+        printf("contato: %d \n",  *(long int*)(pBuffer + nome + idade));
         pBuffer = *(void**)(pBuffer + prox);
     }
+
+    if(*(int *)pAddress == 0){
+        printf("Nenhuma pessoa cadastrada na agenda.");
+    }
+
+    continuar();
 }
 
 void removerPessoa(void *pBuffer, void *pAddress){
+    system("clear");
     void *temp;
-    char *nomeExcluir = pBuffer + nome;
+    char *nomeExcluir = calloc(1, nome);
 
     printf("Insira nome da pessoa para remover: ");
     scanf("%s", nomeExcluir);    
@@ -134,14 +149,44 @@ void removerPessoa(void *pBuffer, void *pAddress){
    
             *(int *)pAddress -= 1;
             free(pBuffer);
+            free(nomeExcluir);
+            printf("\n\nPessoa removida com sucesso!\n");
+            continuar();
             return;
         } 
 
         pBuffer = *(void **)(pBuffer + prox);
     }
 
+    free(nomeExcluir);
     printf("\n\nPessoa não encontrada.\n");
+    continuar();
     return;
+}
+
+void removerTudo(void *pBuffer, void *pAddress){
+    system("clear");
+    pBuffer = *(void **)(pAddress + pri); 
+    void *temp;
+
+    while (pBuffer != NULL){
+        if(*(void **)(pBuffer + prox) != NULL){
+            temp = *(void **)(pBuffer + prox);
+            free(pBuffer);
+            pBuffer = temp;
+        }else{
+            free(pBuffer);
+            return;
+        }
+    }
+
+    return;
+}
+
+void continuar(){
+  printf("\nPressione enter para continuar....");
+  while(getchar()!='\n');
+  getchar();
 }
 
 int main(){
@@ -162,8 +207,13 @@ int main(){
         return -1;
     }
 
+    printf("\t\tOlá!");
+
     while( *response != 5){
-        printf("Olá! Selecione uma opção: \n\n1. Inserir uma nova pessoa na agenda\n2. Procurar pessoas\n3. Listar todas as pessoas\n4. Remover pessoas\n5. Sair \n\n");
+        system("clear");
+        printf("\n\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+        printf("\n\n\tSelecione uma opção:\n\n\t1. Inserir uma nova pessoa na agenda\n\t2. Procurar pessoas\n\t3. Listar todas as pessoas\n\t4. Remover pessoas\n\t5. Sair \n\n");
+        printf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n");
         scanf("%d", &*response);
 
         switch (*response)
@@ -185,9 +235,10 @@ int main(){
             break;
 
             case 5:
-                free(pBuffer);
+                removerTudo(pBuffer, pAddress);
                 free(pAddress);
-                printf("\nVolte sempre! :)");
+                printf("\nVolte sempre! :)\n");
+                exit(0);
             break;
 
             default:
